@@ -290,21 +290,63 @@ O objetivo é demonstrar a aplicação de políticas de mascaramento de dados, c
 
 ## 8. Demonstração das interfaces
 
-As capturas de ecrã da aplicação serão disponibilizadas na pasta `docs/screenshots`.
+As imagens seguintes apresentam as principais funcionalidades do DBMASK, demonstrando o controlo de acessos, o mascaramento de dados e a auditoria das operações.
 
-Estão previstas imagens das seguintes funcionalidades:
+8.1. Autenticação
 
-| Interface | Demonstração |
-|---|---|
-| Autenticação | Acesso à aplicação |
-| Clientes — Administrador | Visualização de dados conforme as regras do perfil |
-| Clientes — Gestor | Aplicação de mascaramento de dados |
-| Clientes — Operador | Aplicação de mascaramento de dados |
-| Gestão de regras | Configuração das estratégias de mascaramento |
-| Gestão de utilizadores | Administração de contas e perfis |
-| Auditoria | Consulta do histórico de operações |
+Acesso à aplicação através de autenticação baseada em ASP.NET Core Identity.
 
-As capturas devem utilizar exclusivamente dados fictícios e não apresentar credenciais ou informação sensível.
+
+
+8.2. Mascaramento de dados por perfil
+
+Administrador — Visualização integral
+
+O perfil Administrador permite consultar os dados sem mascaramento, de acordo com as regras configuradas.
+
+
+
+Gestor — Mascaramento parcial
+
+O perfil Gestor apresenta os dados parcialmente mascarados, utilizando estratégias como NamePartial, EmailPartial e Last4.
+
+
+
+Operador — Mascaramento completo
+
+O perfil Operador apresenta os campos sensíveis integralmente mascarados através da estratégia Full.
+
+
+
+8.3. Gestão de regras de mascaramento
+
+O Administrador pode configurar as estratégias de mascaramento aplicáveis a cada campo e perfil de acesso.
+
+
+
+8.4. Gestão de utilizadores
+
+A interface administrativa permite consultar utilizadores, identificar os respetivos perfis e verificar o estado das contas.
+
+
+
+8.5. Bloqueio e desbloqueio de contas
+
+Após cinco tentativas de autenticação falhadas, a conta é temporariamente bloqueada durante 15 minutos.
+
+O Administrador pode identificar contas bloqueadas e proceder ao seu desbloqueio manual.
+
+
+
+
+
+8.6. Auditoria e rastreabilidade
+
+O DBMASK regista operações relevantes, incluindo autenticações, tentativas falhadas, consultas de clientes e desbloqueios administrativos.
+
+A interface permite filtrar os registos por utilizador, operação e intervalo de datas.
+
+
 
 ---
 
