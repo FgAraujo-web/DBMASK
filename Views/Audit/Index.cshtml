@@ -1,0 +1,139 @@
+﻿
+@model DBMASK.Web.Models.AuditFilterViewModel
+
+@{
+    ViewData["Title"] = "Auditoria";
+}
+
+<h2>Auditoria — Histórico de Operações</h2>
+
+<p class="text-muted">
+    Consulta e rastreabilidade das operações realizadas
+    na plataforma DBMASK.
+</p>
+
+<form method="get" asp-controller="Audit"
+      asp-action="Index" class="row g-3 mb-4">
+
+    <div class="col-md-3">
+        <label class="form-label">Utilizador</label>
+        <input type="text" name="actor"
+               value="@Model.Actor"
+               class="form-control"
+               placeholder="Email ou identificador" />
+    </div>
+
+    <div class="col-md-3">
+        <label class="form-label">Operação</label>
+        <select name="action" class="form-select">
+            <option value="">Todas</option>
+            <option value="Customers.Read"
+                    selected="@(Model.Action == "Customers.Read")">
+                Consulta de clientes
+            </option>
+            <option value="Rule.Change"
+                    selected="@(Model.Action == "Rule.Change")">
+                Alteração de regras
+            </option>
+        </select>
+    </div>
+
+    <div class="col-md-2">
+        <label class="form-label">Data inicial (UTC)</label>
+        <input type="date" name="startDate"
+               value="@Model.StartDate?.ToString("yyyy-MM-dd")"
+               class="form-control" />
+    </div>
+
+    <div class="col-md-2">
+        <label class="form-label">Data final (UTC)</label>
+        <input type="date" name="endDate"
+               value="@Model.EndDate?.ToString("yyyy-MM-dd")"
+               class="form-control" />
+    </div>
+
+    <div class="col-md-2 d-flex align-items-end gap-2">
+        <button type="submit" class="btn btn-primary">
+            Filtrar
+        </button>
+        <a asp-action="Index"
+           class="btn btn-secondary">Limpar</a>
+    </div>
+</form>
+
+<div class="mb-3">
+    <strong>Total de registos:</strong>
+    @Model.TotalRecords
+</div>
+
+<div class="table-responsive">
+    <table class="table table-striped table-hover">
+        <thead class="table-dark">
+            <tr>
+                <th>Data/Hora (UTC)</th>
+                <th>Utilizador</th>
+                <th>Operação</th>
+                <th>Detalhes</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.Records)
+            {
+                <tr>
+                    <td>
+                        @item.OccurredUtc.ToString("dd/MM/yyyy HH:mm:ss")
+                    </td>
+                    <td>@item.ActorEmail</td>
+                    <td>
+                        @if (item.Action == "Rule.Change")
+                        {
+                            <span class="badge bg-warning text-dark">
+                                Alteração de regra
+                            </span>
+                        }
+                        else if (item.Action == "Customers.Read")
+                        {
+                            <span class="badge bg-info text-dark">
+                                Consulta
+                            </span>
+                        }
+                        else
+                        {
+                            @item.Action
+                        }
+                    </td>
+                    <td>@item.Detail</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@if (!Model.Records.Any())
+{
+    <div class="alert alert-info">
+        Não foram encontrados registos de auditoria.
+    </div>
+}
+
+@if (Model.TotalPages > 1)
+{
+    <nav aria-label="Paginação da auditoria">
+        <ul class="pagination">
+            @for (int p = 1; p <= Model.TotalPages; p++)
+            {
+                <li class="page-item @(p == Model.Page ? "active" : "")">
+                    <a class="page-link"
+                       asp-action="Index"
+                       asp-route-page="@p"
+                       asp-route-actor="@Model.Actor"
+                       asp-route-action="@Model.Action"
+                       asp-route-startDate="@Model.StartDate?.ToString("yyyy-MM-dd")"
+                       asp-route-endDate="@Model.EndDate?.ToString("yyyy-MM-dd")">
+                        @p
+                    </a>
+                </li>
+            }
+        </ul>
+    </nav>
+}

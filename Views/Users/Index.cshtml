@@ -1,0 +1,127 @@
+﻿
+@model List<DBMASK.Web.Controllers.UserListViewModel>
+
+@{
+    ViewData["Title"] = "Gestão de Utilizadores";
+}
+
+<h2>Gestão de Utilizadores</h2>
+
+<p class="text-muted">
+    Administração de contas, perfis de acesso
+    e desbloqueio de utilizadores.
+</p>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success" role="alert">
+        @TempData["Success"]
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger" role="alert">
+        @TempData["Error"]
+    </div>
+}
+
+@if (TempData["Info"] != null)
+{
+    <div class="alert alert-info" role="alert">
+        @TempData["Info"]
+    </div>
+}
+
+<p>
+    <a asp-controller="Users"
+       asp-action="Create"
+       class="btn btn-primary">
+        Novo Utilizador
+    </a>
+</p>
+
+<div class="table-responsive">
+    <table class="table table-striped table-hover">
+        <thead class="table-dark">
+            <tr>
+                <th>Email</th>
+                <th>Perfil</th>
+                <th>Estado da conta</th>
+                <th>Bloqueada até (UTC)</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            @foreach (var user in Model)
+            {
+                <tr>
+                    <td>@user.Email</td>
+
+                    <td>@user.Role</td>
+
+                    <td>
+                        @if (user.IsLocked)
+                        {
+                            <span class="badge bg-danger">
+                                Bloqueada
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-success">
+                                Ativa
+                            </span>
+                        }
+                    </td>
+
+                    <td>
+                        @if (user.IsLocked &&
+                             user.LockoutEnd.HasValue)
+                        {
+                        @(user.LockoutEnd.Value.UtcDateTime.ToString("dd/MM/yyyy HH:mm:ss"))
+                        }
+                        else
+                        {
+                            <span class="text-muted">—</span>
+                        }
+                    </td>
+
+                    <td>
+                        @if (user.IsLocked)
+                        {
+                            <form asp-controller="Users"
+                                  asp-action="Unlock"
+                                  method="post">
+
+                                @Html.AntiForgeryToken()
+
+                                <input type="hidden"
+                                       name="id"
+                                       value="@user.Id" />
+
+                                <button type="submit"
+                                        class="btn btn-warning btn-sm"
+                                        onclick="return confirm('Pretende desbloquear esta conta?');">
+                                    Desbloquear
+                                </button>
+                            </form>
+                        }
+                        else
+                        {
+                            <span class="text-muted">—</span>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">
+        Não existem utilizadores registados.
+    </div>
+}

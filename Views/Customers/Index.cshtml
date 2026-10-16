@@ -1,0 +1,2 @@
+@model List<CustomerView>
+<h1>Clientes — consulta protegida</h1><p>Perfil: @(User.IsInRole("Administrador")?"Administrador":User.IsInRole("Gestor")?"Gestor":"Operador")</p><table class="table table-striped"><thead><tr><th>ID</th><th>Nome</th><th>NIF</th><th>Email</th><th>Telefone</th></tr></thead><tbody>@foreach(var c in Model){<tr><td>@c.Id</td><td>@c.Name</td><td>@c.Nif</td><td>@c.Email</td><td>@c.Phone</td></tr>}</tbody></table><p class="text-muted">Os valores são mascarados no servidor antes da resposta HTTP.</p>

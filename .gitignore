@@ -1,0 +1,46 @@
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Compilação .NET
+bin/
+obj/
+Debug/
+Release/
+artifacts/
+TestResults/
+
+# Configurações locais
+appsettings.Development.json
+appsettings.Local.json
+*.publishsettings
+*.pubxml.user
+
+# Segredos e certificados
+secrets.json
+*.pfx
+*.snk
+.env
+.env.*
+
+# Base de dados local
+*.mdf
+*.ldf
+*.bak
+
+# Logs
+logs/
+*.log
+
+# Ficheiros temporários
+*.tmp
+*.cache
+*.bak.tmp
+
+# Componentes auxiliares de compilação
+BuildHost-net472/
+BuildHost-netcore/

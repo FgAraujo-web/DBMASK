@@ -1,0 +1,92 @@
+
+@model List<DBMASK.Web.Models.MaskRule>
+
+@{
+    ViewData["Title"] = "Gestão de Regras";
+}
+
+<h2>Gestão de Regras de Mascaramento</h2>
+
+<p class="text-muted">
+    Configure o nível de visibilidade dos dados
+    para cada perfil de utilizador.
+</p>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["Success"]
+    </div>
+}
+
+@if (TempData["Info"] != null)
+{
+    <div class="alert alert-info">
+        @TempData["Info"]
+    </div>
+}
+
+<table class="table table-striped table-hover">
+    <thead class="table-dark">
+        <tr>
+            <th>Recurso</th>
+            <th>Perfil</th>
+            <th>Campo</th>
+            <th>Método de Mascaramento</th>
+            <th>Ação</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @foreach (var rule in Model)
+        {
+            <tr>
+                <td>@rule.Resource</td>
+                <td>@rule.Role</td>
+                <td>@rule.Field</td>
+
+                <td colspan="2">
+                    <form asp-controller="Rules"
+                          asp-action="Change"
+                          method="post"
+                          class="d-flex gap-2">
+
+                        @Html.AntiForgeryToken()
+
+                        <input type="hidden"
+                               name="id"
+                               value="@rule.Id" />
+
+                        <select name="method"
+                                class="form-select">
+
+                            @foreach (var method in
+                                Enum.GetValues<DBMASK.Web.Models.MaskMethod>())
+                            {
+                                if (rule.Method == method)
+                                {
+                                    <option value="@method" selected>
+                                        @method
+                                    </option>
+                                }
+                                else
+                                {
+                                    <option value="@method">
+                                        @method
+                                    </option>
+                                }
+                            }
+
+                        </select>
+
+                        <button type="submit"
+                                class="btn btn-primary">
+                            Guardar
+                        </button>
+
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

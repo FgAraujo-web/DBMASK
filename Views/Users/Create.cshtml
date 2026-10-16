@@ -1,0 +1,53 @@
+﻿
+@model DBMASK.Web.Models.CreateUserViewModel
+
+@{
+    ViewData["Title"] = "Novo Utilizador";
+}
+
+<h2>Novo Utilizador</h2>
+
+<form asp-controller="Users" asp-action="Create" method="post">
+    @Html.AntiForgeryToken()
+
+    <div asp-validation-summary="All"
+         class="text-danger"></div>
+
+    <div class="mb-3">
+        <label asp-for="Email" class="form-label">Email</label>
+        <input asp-for="Email" class="form-control" />
+        <span asp-validation-for="Email" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Password" class="form-label">
+            Palavra-passe
+        </label>
+        <input asp-for="Password"
+               type="password"
+               autocomplete="new-password"
+               class="form-control" />
+        <span asp-validation-for="Password"
+              class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Role" class="form-label">Perfil</label>
+        <select asp-for="Role" class="form-select">
+            <option value="">Selecione...</option>
+            <option value="Administrador">Administrador</option>
+            <option value="Gestor">Gestor</option>
+            <option value="Operador">Operador</option>
+        </select>
+        <span asp-validation-for="Role"
+              class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">
+        Criar Utilizador
+    </button>
+
+    <a asp-action="Index" class="btn btn-secondary">
+        Cancelar
+    </a>
+</form>
