@@ -6,20 +6,19 @@
 
 ## 1. Sobre o projeto
 
-O **DBMASK** é uma aplicação de demonstração desenvolvida em ASP.NET Core MVC, destinada a implementar e demonstrar mecanismos de mascaramento de dados sensíveis de acordo com os perfis de acesso dos utilizadores.
+O **DBMASK** é uma aplicação web desenvolvida em ASP.NET Core MVC que demonstra a implementação de mecanismos de mascaramento de dados sensíveis, de acordo com os perfis de acesso dos utilizadores.
 
-O projeto tem como objetivo explorar conceitos e boas práticas relacionados com:
+O projeto foi desenvolvido como uma prova de conceito (*Proof of Concept — PoC*), com o objetivo de explorar e partilhar conhecimentos nas áreas de:
 
-- Proteção de dados sensíveis.
+- Desenvolvimento de aplicações .NET.
+- Segurança e proteção de dados.
 - Mascaramento dinâmico de informação.
 - Controlo de acessos baseado em perfis (*Role-Based Access Control — RBAC*).
 - Autenticação e gestão de utilizadores.
 - Auditoria e rastreabilidade de operações.
-- Separação de responsabilidades na arquitetura aplicacional.
+- Integração com bases de dados SQL Server.
 
-O mascaramento é realizado **no servidor**, antes de os dados serem enviados para a interface. Desta forma, os valores originais não são disponibilizados ao navegador quando o perfil autenticado não está autorizado a consultá-los.
-
-Este projeto foi desenvolvido para fins de aprendizagem, experimentação técnica e partilha de conhecimento.
+**O mascaramento é aplicado no servidor, antes da resposta HTTP**, impedindo que os valores originais dos campos protegidos sejam enviados ao navegador quando o perfil não está autorizado a consultá-los.
 
 ---
 
@@ -29,13 +28,13 @@ Este projeto foi desenvolvido para fins de aprendizagem, experimentação técni
 |---|---|
 | C# | Linguagem de programação |
 | ASP.NET Core MVC | Desenvolvimento da aplicação web |
-| Entity Framework Core | Acesso a dados e gestão de Migrations |
-| Microsoft SQL Server | Sistema de gestão de base de dados |
-| ASP.NET Core Identity | Autenticação, utilizadores e perfis |
-| Razor Views | Construção das interfaces |
-| LINQ | Consultas e manipulação de dados |
-| HTML, CSS e Bootstrap | Apresentação da aplicação |
-| Git e GitHub | Controlo de versões e partilha do projeto |
+| Entity Framework Core | Persistência e Migrations |
+| Microsoft SQL Server | Base de dados relacional |
+| ASP.NET Core Identity | Autenticação e gestão de utilizadores |
+| Razor Views | Interfaces da aplicação |
+| LINQ | Consultas e tratamento de dados |
+| HTML, CSS e Bootstrap | Apresentação |
+| Git e GitHub | Controlo de versões e partilha |
 
 ---
 
@@ -43,85 +42,91 @@ Este projeto foi desenvolvido para fins de aprendizagem, experimentação técni
 
 ### 3.1. Autenticação e autorização
 
-A aplicação utiliza **ASP.NET Core Identity** para gerir a autenticação e o acesso às funcionalidades.
+A aplicação utiliza ASP.NET Core Identity para autenticação e autorização.
 
 Estão definidos três perfis:
 
-| Perfil | Descrição |
+| Perfil | Permissões |
 |---|---|
-| **Administrador** | Gestão de utilizadores, regras de mascaramento e auditoria |
-| **Gestor** | Consulta de clientes com as regras de mascaramento aplicáveis ao perfil |
-| **Operador** | Consulta de clientes com as regras de mascaramento aplicáveis ao perfil |
+| **Administrador** | Consulta de clientes, gestão de regras, utilizadores e auditoria |
+| **Gestor** | Consulta de clientes com mascaramento parcial |
+| **Operador** | Consulta de clientes com mascaramento completo |
 
-O acesso às funcionalidades administrativas é restringido através de autorização baseada em perfis.
+As permissões administrativas são protegidas através de autorização baseada em perfis.
 
-### 3.2. Mascaramento de dados
+### 3.2. Motor de mascaramento
 
-O motor de mascaramento, implementado através do serviço `MaskEngine`, suporta as seguintes estratégias:
+O serviço `MaskEngine` implementa diferentes estratégias de proteção:
 
 | Estratégia | Descrição |
 |---|---|
 | `None` | Apresentação integral do valor |
-| `Full` | Ocultação completa do valor |
+| `Full` | Mascaramento completo |
 | `Last4` | Apresentação dos últimos quatro caracteres |
-| `EmailPartial` | Mascaramento parcial do endereço de email |
+| `EmailPartial` | Mascaramento parcial do email |
 | `NamePartial` | Mascaramento parcial do nome |
 
-As regras são configuráveis por campo e perfil de acesso.
+As estratégias são configuráveis por campo e perfil.
 
-O serviço `CustomerReader` é responsável por aplicar as regras de mascaramento aos dados dos clientes antes de os disponibilizar à interface.
+O serviço `CustomerReader` aplica as regras antes de disponibilizar os dados à interface.
 
-### 3.3. Gestão de regras de mascaramento
+### 3.3. Gestão de regras
 
-O Administrador pode gerir as regras de mascaramento, definindo as estratégias aplicáveis aos diferentes campos e perfis.
+O Administrador pode configurar o método de mascaramento aplicável a cada campo e perfil.
 
-As regras são armazenadas na base de dados, permitindo ajustar o comportamento da aplicação sem modificar diretamente o motor de mascaramento.
+As regras são armazenadas na base de dados, permitindo alterar o comportamento da aplicação sem modificar diretamente o código do motor de mascaramento.
 
 ### 3.4. Gestão de utilizadores
 
-A aplicação disponibiliza uma interface administrativa para:
+A aplicação permite:
 
-- Criar utilizadores.
+- Criar contas de utilizador.
 - Atribuir perfis de acesso.
-- Consultar contas existentes.
-- Identificar contas bloqueadas.
-- Desbloquear manualmente contas.
+- Consultar o estado das contas.
+- Identificar contas temporariamente bloqueadas.
+- Desbloquear manualmente utilizadores.
 
 ### 3.5. Segurança da autenticação
 
-Foram implementados mecanismos de proteção das contas, incluindo:
+Foram implementados mecanismos de segurança, incluindo:
 
 - Comprimento mínimo de 12 caracteres para palavras-passe.
 - Bloqueio após cinco tentativas de autenticação falhadas.
-- Bloqueio temporário de 15 minutos.
-- Desbloqueio administrativo de contas.
+- Período de bloqueio de 15 minutos.
+- Desbloqueio manual pelo Administrador.
 - Cookies de autenticação com `HttpOnly`, `Secure` e `SameSite=Lax`.
 
 ### 3.6. Auditoria e rastreabilidade
 
-A aplicação mantém um histórico de operações relevantes, incluindo:
+O DBMASK regista operações relevantes, incluindo:
 
-- Consulta de dados de clientes.
+- Autenticações bem-sucedidas.
 - Tentativas de autenticação falhadas.
 - Bloqueios de contas.
 - Desbloqueios administrativos.
+- Consultas de dados de clientes.
+- Terminação de sessões.
 
-A interface de auditoria permite consultar os registos, aplicar filtros e navegar pelos resultados através de paginação.
+A interface de auditoria permite filtrar registos por utilizador, operação e intervalo de datas, com paginação dos resultados.
 
 ---
 
-## 4. Arquitetura da aplicação
+## 4. Arquitetura
 
-O DBMASK utiliza o padrão **Model-View-Controller (MVC)**, com separação entre apresentação, lógica aplicacional e persistência.
+O projeto segue o padrão **Model-View-Controller (MVC)**, com separação entre apresentação, lógica aplicacional e acesso a dados.
 
-Os principais componentes incluem:
+### Principais componentes
 
-- **Controllers:** processamento dos pedidos e controlo de acesso.
-- **Models:** representação das entidades e modelos da aplicação.
-- **Views:** apresentação das interfaces.
-- **Services:** implementação das regras de mascaramento e leitura de dados.
-- **Data:** contexto de dados e inicialização da aplicação.
-- **Migrations:** evolução e criação do esquema da base de dados.
+| Componente | Responsabilidade |
+|---|---|
+| `Controllers` | Processamento de pedidos e autorização |
+| `Models` | Entidades e modelos da aplicação |
+| `Views` | Interfaces Razor |
+| `Services/MaskEngine` | Estratégias de mascaramento |
+| `Services/CustomerReader` | Consulta protegida dos dados |
+| `Data/AppDbContext` | Persistência através de EF Core |
+| `Data/Bootstrap` | Inicialização da base de dados, perfis e regras |
+| `Migrations` | Evolução do esquema da base de dados |
 
 ### Estrutura do projeto
 
@@ -136,9 +141,16 @@ DBMASK.Web/
 ├── database/
 │   └── seed_customers.sql
 ├── docs/
-│   ├── DBMASK_Ficha_Tecnica.pdf
 │   └── screenshots/
-├── Properties/
+│       ├── 01-login.png
+│       ├── 02-clientes-administrador.png
+│       ├── 03-clientes-gestor.png
+│       ├── 04-clientes-operador.png
+│       ├── 05-regras.png
+│       ├── 06-utilizadores.png
+│       ├── 07-conta-bloqueada.png
+│       ├── 08-login-bloqueado.png
+│       └── 09-auditoria.png
 ├── Program.cs
 ├── appsettings.json
 ├── .gitignore
@@ -146,36 +158,32 @@ DBMASK.Web/
 └── DBMASK.Web.csproj
 ```
 
-A estrutura apresentada inclui os diretórios previstos para a documentação e os dados de demonstração.
-
 ---
 
 ## 5. Base de dados
 
-O DBMASK utiliza **Microsoft SQL Server**, com persistência implementada através de Entity Framework Core.
+A aplicação utiliza Microsoft SQL Server e Entity Framework Core.
 
-As principais tabelas incluem:
+As principais tabelas são:
 
 | Tabela | Finalidade |
 |---|---|
-| `Customers` | Dados dos clientes utilizados na demonstração |
-| `MaskRules` | Regras de mascaramento por campo e perfil |
+| `Customers` | Dados dos clientes |
+| `MaskRules` | Regras de mascaramento |
 | `AuditEntries` | Registos de auditoria |
-| Tabelas ASP.NET Core Identity | Gestão de utilizadores, perfis e autenticação |
+| Tabelas ASP.NET Core Identity | Utilizadores, perfis e autenticação |
 
-### 5.1. Criação da base de dados através de EF Core Migrations
+### 5.1. EF Core Migrations
 
-As Migrations estão incluídas na pasta `Migrations` do projeto.
+As Migrations encontram-se incluídas no projeto e permitem recriar a estrutura da base de dados.
 
-Durante a inicialização da aplicação, o método `Bootstrap.InitializeAsync()` aplica as Migrations pendentes e inicializa os elementos necessários ao funcionamento da aplicação.
+Durante a inicialização, o método `Bootstrap.InitializeAsync()` aplica as Migrations pendentes e inicializa os perfis e as regras de mascaramento necessários.
 
-Este processo permite recriar a estrutura da base de dados sem necessidade de restaurar um backup SQL Server (`.bak`).
+Não é necessário restaurar um backup SQL Server (`.bak`).
 
-### 5.2. Configuração da ligação ao SQL Server
+### 5.2. Configuração local
 
-A aplicação utiliza uma connection string identificada por `DBMASK`.
-
-A configuração local pode ser efetuada através de **ASP.NET Core User Secrets**, evitando a publicação de credenciais no repositório.
+A ligação à base de dados e as credenciais iniciais do Administrador podem ser configuradas através de **ASP.NET Core User Secrets**.
 
 Exemplo:
 
@@ -191,21 +199,19 @@ Exemplo:
 }
 ```
 
-O valor `DEFINIR_LOCALMENTE` é apenas um marcador e deve ser substituído por uma palavra-passe forte.
+O valor `DEFINIR_LOCALMENTE` deve ser substituído por uma palavra-passe forte.
 
-**Nunca devem ser publicados ficheiros de segredos ou credenciais reais.**
+**As credenciais reais e os ficheiros de segredos não devem ser publicados no GitHub.**
 
-### 5.3. Dados fictícios de demonstração
+### 5.3. Dados fictícios
 
-O projeto disponibiliza um script SQL destinado à inserção de clientes fictícios:
+O projeto disponibiliza um script SQL para inserir clientes fictícios:
 
 `database/seed_customers.sql`
 
-O script deve ser executado no **SQL Server Management Studio (SSMS)**, após a criação da base de dados através das Migrations.
+O script deve ser executado no SQL Server Management Studio após a criação da base de dados através das Migrations.
 
-Os registos permitem demonstrar as diferentes estratégias de mascaramento, utilizando exclusivamente informação fictícia.
-
-Não é necessário disponibilizar ou restaurar um backup da base de dados original.
+Os dados permitem testar as diferentes estratégias de mascaramento.
 
 ---
 
@@ -217,7 +223,7 @@ Não é necessário disponibilizar ou restaurar um backup da base de dados origi
 - SDK .NET compatível com o projeto.
 - Microsoft SQL Server.
 - SQL Server Management Studio (recomendado).
-- Git (para clonar o repositório).
+- Git.
 
 ### Passo 1 — Clonar o repositório
 
@@ -225,9 +231,9 @@ Não é necessário disponibilizar ou restaurar um backup da base de dados origi
 git clone https://github.com/FgAraujo-web/DBMASK.git
 ```
 
-### Passo 2 — Abrir a solução
+### Passo 2 — Abrir o projeto
 
-Abrir o projeto no Visual Studio e restaurar os pacotes NuGet, caso seja necessário.
+Abrir a solução no Visual Studio e restaurar os pacotes NuGet.
 
 ### Passo 3 — Configurar os User Secrets
 
@@ -242,27 +248,25 @@ No Visual Studio:
 
 Executar a aplicação.
 
-Durante a inicialização, o Bootstrap aplica as Migrations pendentes e cria os perfis e as regras iniciais necessários ao funcionamento do DBMASK.
+O Bootstrap aplica as Migrations pendentes e cria os perfis e regras iniciais.
 
 ### Passo 5 — Inserir dados fictícios
 
-No SQL Server Management Studio, executar:
+Executar no SQL Server Management Studio o ficheiro:
 
 `database/seed_customers.sql`
 
-O script insere os clientes fictícios utilizados para demonstrar o mascaramento.
-
 ### Passo 6 — Testar os perfis
 
-Autenticar-se com a conta Administrador e criar as contas Gestor e Operador através da interface de gestão de utilizadores.
+Autenticar-se como Administrador e criar contas com os perfis Gestor e Operador através da interface de gestão de utilizadores.
 
-Em seguida, iniciar sessão com cada perfil para comparar a apresentação dos dados.
+Iniciar sessão com cada perfil para comparar os diferentes níveis de mascaramento.
 
 ---
 
 ## 7. Contas de demonstração
 
-O DBMASK permite testar três níveis de acesso através de contas de demonstração, possibilitando comparar a apresentação dos dados sensíveis de acordo com o perfil do utilizador.
+O DBMASK permite testar três níveis de acesso através de contas de demonstração.
 
 | Perfil | Email de exemplo | Criação |
 |---|---|---|
@@ -270,111 +274,111 @@ O DBMASK permite testar três níveis de acesso através de contas de demonstra�
 | **Gestor** | `gestor@dbmask.local` | Através da gestão de utilizadores |
 | **Operador** | `operador@dbmask.local` | Através da gestão de utilizadores |
 
-### 7.1. Configuração das contas
+A conta Administrador é criada automaticamente utilizando as credenciais configuradas através de User Secrets.
 
-A conta Administrador é criada automaticamente durante a inicialização da aplicação, utilizando as credenciais configuradas localmente através de ASP.NET Core User Secrets.
+As contas Gestor e Operador devem ser criadas pelo Administrador, com os respetivos perfis e palavras-passe.
 
-Após autenticação como Administrador, é possível criar as contas Gestor e Operador através da interface de gestão de utilizadores, atribuindo-lhes os respetivos perfis e palavras-passe.
+Os emails apresentados são fictícios e destinam-se exclusivamente à demonstração.
 
-Os endereços de email apresentados são fictícios e destinam-se exclusivamente à demonstração.
-
-As palavras-passe não são disponibilizadas no repositório GitHub.
-
-### 7.2. Testar o mascaramento de dados
-
-Após a criação das contas, o utilizador pode autenticar-se com cada perfil e observar as diferenças na apresentação dos dados sensíveis.
-
-O objetivo é demonstrar a aplicação de políticas de mascaramento de dados, controlo de acessos baseado em perfis (*Role-Based Access Control — RBAC*) e auditoria das operações.
+As palavras-passe não são disponibilizadas no repositório.
 
 ---
 
 ## 8. Demonstração das interfaces
 
-As imagens seguintes apresentam as principais funcionalidades do DBMASK, demonstrando o controlo de acessos, o mascaramento de dados e a auditoria das operações.
+As capturas seguintes apresentam as principais funcionalidades do DBMASK.
 
-8.1. Autenticação
+### 8.1. Autenticação
 
-Acesso à aplicação através de autenticação baseada em ASP.NET Core Identity.
+Acesso à aplicação através de ASP.NET Core Identity.
 
+![Autenticação DBMASK](docs/screenshots/01-login.png)
 
+### 8.2. Consulta protegida de clientes
 
-8.2. Mascaramento de dados por perfil
+O DBMASK permite apresentar os mesmos registos com diferentes níveis de visibilidade, de acordo com o perfil autenticado.
 
-Administrador — Visualização integral
+#### Administrador — Visualização integral
 
-O perfil Administrador permite consultar os dados sem mascaramento, de acordo com as regras configuradas.
+O Administrador consulta os campos sem mascaramento, de acordo com as regras configuradas.
 
+![Clientes - Administrador](docs/screenshots/02-clientes-administrador.png)
 
+#### Gestor — Mascaramento parcial
 
-Gestor — Mascaramento parcial
+O Gestor consulta os dados com mascaramento parcial dos campos sensíveis.
 
-O perfil Gestor apresenta os dados parcialmente mascarados, utilizando estratégias como NamePartial, EmailPartial e Last4.
+São utilizadas estratégias como `NamePartial`, `EmailPartial` e `Last4`.
 
+![Clientes - Gestor](docs/screenshots/03-clientes-gestor.png)
 
+#### Operador — Mascaramento completo
 
-Operador — Mascaramento completo
+O Operador consulta os registos com os campos sensíveis integralmente mascarados através da estratégia `Full`.
 
-O perfil Operador apresenta os campos sensíveis integralmente mascarados através da estratégia Full.
+![Clientes - Operador](docs/screenshots/04-clientes-operador.png)
 
+**O mascaramento é realizado no servidor, antes da resposta HTTP.**
 
+### 8.3. Gestão de regras de mascaramento
 
-8.3. Gestão de regras de mascaramento
+O Administrador pode configurar o método de mascaramento aplicável a cada campo e perfil.
 
-O Administrador pode configurar as estratégias de mascaramento aplicáveis a cada campo e perfil de acesso.
+![Gestão de Regras](docs/screenshots/05-regras.png)
 
+### 8.4. Gestão de utilizadores
 
+A interface permite consultar contas, identificar perfis e verificar o estado dos utilizadores.
 
-8.4. Gestão de utilizadores
+![Gestão de Utilizadores](docs/screenshots/06-utilizadores.png)
 
-A interface administrativa permite consultar utilizadores, identificar os respetivos perfis e verificar o estado das contas.
-
-
-
-8.5. Bloqueio e desbloqueio de contas
+### 8.5. Bloqueio e desbloqueio de contas
 
 Após cinco tentativas de autenticação falhadas, a conta é temporariamente bloqueada durante 15 minutos.
 
-O Administrador pode identificar contas bloqueadas e proceder ao seu desbloqueio manual.
+O Administrador pode identificar contas bloqueadas e proceder ao desbloqueio manual.
 
+![Conta Bloqueada](docs/screenshots/07-conta-bloqueada.png)
 
+A aplicação apresenta uma mensagem informativa quando a conta se encontra temporariamente bloqueada.
 
+![Autenticação Bloqueada](docs/screenshots/08-login-bloqueado.png)
 
+### 8.6. Auditoria e rastreabilidade
 
-8.6. Auditoria e rastreabilidade
-
-O DBMASK regista operações relevantes, incluindo autenticações, tentativas falhadas, consultas de clientes e desbloqueios administrativos.
+O DBMASK mantém um histórico das operações realizadas, incluindo autenticações, tentativas falhadas, bloqueios, desbloqueios e consultas de dados.
 
 A interface permite filtrar os registos por utilizador, operação e intervalo de datas.
 
-
+![Auditoria DBMASK](docs/screenshots/09-auditoria.png)
 
 ---
 
-## 9. Segurança e âmbito do projeto
+## 9. Segurança e âmbito
 
-O DBMASK é uma **prova de conceito técnica**, desenvolvida para demonstrar mecanismos de proteção de informação e controlo de acessos.
+O DBMASK é uma **prova de conceito técnica**, desenvolvida para fins de aprendizagem e partilha de conhecimento.
 
-O projeto permite explorar:
+A aplicação demonstra mecanismos de:
 
 - Mascaramento de dados no servidor.
-- Autorização baseada em perfis.
+- Controlo de acessos baseado em perfis.
 - Gestão de identidades.
-- Auditoria de operações.
-- Persistência e configuração de regras.
-- Utilização de EF Core Migrations.
-- Separação entre configuração local e código-fonte.
+- Proteção da autenticação.
+- Auditoria e rastreabilidade.
+- Persistência de regras de mascaramento.
+- Gestão da estrutura da base de dados através de Migrations.
 
-A aplicação não deve ser considerada uma solução certificada ou pronta para utilização em produção.
+O projeto não deve ser considerado, por si só, uma solução certificada ou pronta para utilização em produção.
 
-A adoção em ambientes reais exige avaliações adicionais de segurança, privacidade, testes, gestão de segredos e requisitos operacionais.
+A adoção em ambientes reais exige avaliações adicionais de segurança, privacidade, testes e requisitos operacionais.
 
 ---
 
 ## 10. Objetivo da partilha
 
-Este repositório é disponibilizado com o objetivo de **partilhar conhecimento técnico e demonstrar a implementação prática de mecanismos de mascaramento de dados em aplicações .NET**.
+Este repositório é disponibilizado para **partilhar conhecimento técnico e demonstrar a implementação prática de mecanismos de mascaramento de dados em aplicações .NET**.
 
-O projeto constitui um exemplo de integração entre desenvolvimento aplicacional, bases de dados, segurança da informação e gestão de acessos.
+O projeto integra conceitos de desenvolvimento aplicacional, bases de dados, segurança da informação, autenticação, autorização e auditoria.
 
 ---
 
